@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-RULES_URL="${VDUFLOTH_CODE_STYLE_URL:-https://raw.githubusercontent.com/vdufloth/claude-plugins/main/plugins/vdufloth/skills/code-style/SKILL.md}"
+RULES_URL="${VDUFLOTH_CODE_STYLE_URL:-https://raw.githubusercontent.com/vdufloth/agent-plugins/main/plugins/vdufloth/skills/code-style/SKILL.md}"
 BEGIN_MARKER="<!-- vdufloth/code-style: BEGIN -->"
 END_MARKER="<!-- vdufloth/code-style: END -->"
 AGENT="claude-code"

@@ -1,6 +1,6 @@
 # ADR 0002: Stage the repository rename
 
-- Status: Accepted
+- Status: Superseded by ADR 0003
 - Date: 2026-09-20
 
 ## Context

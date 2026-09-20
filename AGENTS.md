@@ -61,8 +61,9 @@ node scripts/check-package.mjs --sync
 The sync command changes only the two derived Claude version fields. Use a
 minor release for a new skill or a material compatibility change and a patch
 release for compatible fixes. Keep the repository slug
-`vdufloth/claude-plugins` and Claude marketplace name
-`vdufloth-claude-plugins` until the staged rename criteria in ADR 0002 are met.
+`vdufloth/agent-plugins`. Treat the Claude marketplace name
+`vdufloth-claude-plugins` as a stable compatibility identifier; do not rename
+it as part of routine branding changes. ADR 0003 records the repository rename.
 
 ## Validation
 

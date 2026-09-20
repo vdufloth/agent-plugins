@@ -1,14 +1,14 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "vdufloth",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Personal agent skills for software engineering workflows",
   "author": {
     "name": "Vinicius Dufloth",
     "url": "https://github.com/vdufloth"
   },
-  "homepage": "https://github.com/vdufloth/claude-plugins",
-  "repository": "https://github.com/vdufloth/claude-plugins",
+  "homepage": "https://github.com/vdufloth/agent-plugins",
+  "repository": "https://github.com/vdufloth/agent-plugins",
   "license": "MIT",
   "keywords": ["agent-skills", "code-style", "code-review", "planning"]
 }

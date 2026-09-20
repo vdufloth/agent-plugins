@@ -17,15 +17,20 @@ copies in an agent's native skills directory.
 
 | Route | Install | Update | Best for |
 | --- | --- | --- | --- |
-| Claude Code plugin | `/plugin marketplace add vdufloth/claude-plugins`<br>`/plugin install vdufloth@vdufloth-claude-plugins` | `/plugin marketplace update vdufloth-claude-plugins`<br>`/plugin update vdufloth@vdufloth-claude-plugins` | Native managed Claude installation |
-| Codex plugin | `codex plugin marketplace add vdufloth/claude-plugins`<br>`codex plugin add vdufloth@vdufloth-agent-plugins` | `codex plugin marketplace upgrade vdufloth-agent-plugins`<br>`codex plugin add vdufloth@vdufloth-agent-plugins` | Native managed Codex installation |
-| Editable skills | `npx skills@latest add vdufloth/claude-plugins` | `npx skills@latest update` | Codex, Claude Code, Cursor, and other supported agents |
+| Claude Code plugin | `/plugin marketplace add vdufloth/agent-plugins`<br>`/plugin install vdufloth@vdufloth-claude-plugins` | `/plugin marketplace update vdufloth-claude-plugins`<br>`/plugin update vdufloth@vdufloth-claude-plugins` | Native managed Claude installation |
+| Codex plugin | `codex plugin marketplace add vdufloth/agent-plugins`<br>`codex plugin add vdufloth@vdufloth-agent-plugins` | `codex plugin marketplace upgrade vdufloth-agent-plugins`<br>`codex plugin add vdufloth@vdufloth-agent-plugins` | Native managed Codex installation |
+| Editable skills | `npx skills@latest add vdufloth/agent-plugins` | `npx skills@latest update` | Codex, Claude Code, Cursor, and other supported agents |
 
 <!-- install-routes:end -->
 
 The repository is public, and these skills do not require authentication.
 The editable route prompts for the target agent and skills unless you pass the
 corresponding `skills` CLI flags.
+
+The repository moved from `vdufloth/claude-plugins` to
+`vdufloth/agent-plugins`. GitHub redirects existing checkouts and marketplace
+sources. The Claude marketplace ID remains `vdufloth-claude-plugins` so
+existing installations continue to update.
 
 See [compatibility](docs/compatibility.md) for tested versions, capabilities,
 and limitations.
@@ -96,7 +101,7 @@ bash scripts/install-code-style.sh --agent codex --remove
 For remote installation, pass script arguments after `bash -s --`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/vdufloth/claude-plugins/main/scripts/install-code-style.sh | bash -s -- --agent codex
+curl -fsSL https://raw.githubusercontent.com/vdufloth/agent-plugins/main/scripts/install-code-style.sh | bash -s -- --agent codex
 ```
 
 The script owns only its marker-delimited block. It makes a timestamped backup

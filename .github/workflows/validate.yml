@@ -65,14 +65,22 @@ jobs:
 
       - name: Verify skills CLI discovery
         run: |
-          npx --yes skills@1.7.0 add . --list | tee "$RUNNER_TEMP/skills-list.txt"
+          marketplace_source="$GITHUB_WORKSPACE"
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            marketplace_source="vdufloth/agent-plugins"
+          fi
+          npx --yes skills@1.7.0 add "$marketplace_source" --list | tee "$RUNNER_TEMP/skills-list.txt"
           node scripts/assert-discovery.mjs skills-list "$RUNNER_TEMP/skills-list.txt"
 
       - name: Verify Codex marketplace discovery and install
         run: |
           profile="$RUNNER_TEMP/codex-profile"
+          marketplace_source="$GITHUB_WORKSPACE"
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            marketplace_source="vdufloth/agent-plugins"
+          fi
           mkdir -p "$profile"
-          HOME="$profile" npx --yes @openai/codex@0.154.0 plugin marketplace add "$GITHUB_WORKSPACE" --json
+          HOME="$profile" npx --yes @openai/codex@0.154.0 plugin marketplace add "$marketplace_source" --json
           HOME="$profile" npx --yes @openai/codex@0.154.0 plugin list \
             --marketplace vdufloth-agent-plugins --available --json \
             > "$RUNNER_TEMP/codex-plugins.json"
@@ -85,9 +93,13 @@ jobs:
       - name: Verify Claude marketplace install
         run: |
           profile="$RUNNER_TEMP/claude-profile"
+          marketplace_source="$GITHUB_WORKSPACE"
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            marketplace_source="vdufloth/agent-plugins"
+          fi
           mkdir -p "$profile"
           HOME="$profile" npx --yes @anthropic-ai/claude-code@2.1.278 \
-            plugin marketplace add "$GITHUB_WORKSPACE"
+            plugin marketplace add "$marketplace_source"
           HOME="$profile" npx --yes @anthropic-ai/claude-code@2.1.278 \
             plugin install vdufloth@vdufloth-claude-plugins --scope user --yes --json
           HOME="$profile" npx --yes @anthropic-ai/claude-code@2.1.278 \

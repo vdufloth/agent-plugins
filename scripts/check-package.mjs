@@ -119,6 +119,8 @@ function checkIdentity(portable, claudePlugin, claudeMarketplace, codexMarketpla
     assert(claudePlugin[field] === portable[field], `Claude manifest ${field} must match portable manifest`);
   }
   assert(claudePlugin.author?.name === portable.author?.name, "Claude and portable author names must match");
+  assert(portable.homepage === "https://github.com/vdufloth/agent-plugins", "portable homepage must use the agent-plugins repository");
+  assert(portable.repository === "https://github.com/vdufloth/agent-plugins", "portable repository must use the agent-plugins repository");
   assert(claudeMarketplace.metadata?.version === portable.version, "Claude marketplace version must match portable manifest");
   assert(claudeMarketplace.name === "vdufloth-claude-plugins", "Claude marketplace identity must remain vdufloth-claude-plugins");
   assert(codexMarketplace.name === "vdufloth-agent-plugins", "Codex marketplace identity must be vdufloth-agent-plugins");

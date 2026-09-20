@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0 - 2026-09-20
+
+- Renamed the public repository from `vdufloth/claude-plugins` to
+  `vdufloth/agent-plugins` while preserving the plugin and marketplace IDs.
+- Updated manifests, installation commands, and the remote code-style
+  bootstrap to use the agent-neutral repository URL.
+- Made push-time discovery smoke tests install from the public GitHub source;
+  pull requests continue to test their checked-out changes locally.
+
 ## 0.5.0 - 2026-09-20
 
 - Added the Humanizer skill from `akitaonrails/my-skills`, preserving its MIT

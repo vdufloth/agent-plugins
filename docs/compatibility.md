@@ -58,6 +58,11 @@ releases do not silently change validation behavior.
 - Native plugin update behavior is host-managed. Editable `skills` copies are
   updated with the `skills` CLI and should not be installed alongside the
   native plugin.
+- The repository was renamed to `vdufloth/agent-plugins` in version 0.6.0.
+  GitHub redirects the former `vdufloth/claude-plugins` source, while the
+  Claude marketplace ID remains `vdufloth-claude-plugins` so installed plugins
+  keep their existing identity and update path. Do not reuse the old GitHub
+  repository name.
 
 ## Behavioral smoke checklist
 

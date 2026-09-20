@@ -2,10 +2,10 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "vdufloth",
   "description": "Personal agent skills for software engineering workflows",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": {
     "name": "Vinicius Dufloth"
   },
-  "homepage": "https://github.com/vdufloth/claude-plugins",
-  "repository": "https://github.com/vdufloth/claude-plugins"
+  "homepage": "https://github.com/vdufloth/agent-plugins",
+  "repository": "https://github.com/vdufloth/agent-plugins"
 }
