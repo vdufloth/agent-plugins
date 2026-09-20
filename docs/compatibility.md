@@ -22,7 +22,7 @@ Last checked on 2026-09-20:
 | --- | --- |
 | Agent Plugins specification | 1.0.0 |
 | Agent Skills reference validator | 0.1.1 |
-| Claude Code local validation | 2.1.273 |
+| Claude Code local validation | 2.1.278 |
 | Codex CLI local discovery | 0.154.0 |
 | `skills` CLI discovery | 1.7.0 |
 | Node.js used by local checks | 26.8.1 |
@@ -64,6 +64,8 @@ releases do not silently change validation behavior.
 Before a release, verify in clean or disposable profiles:
 
 - A code-edit request can activate `code-style` implicitly.
+- A prose-edit request can activate `humanizer` implicitly without changing
+  the source's facts or meaning.
 - A branch-review request can activate `review-current-work` implicitly.
 - `devils-advocate` does not activate implicitly in Claude or Codex.
 - Explicit `devils-advocate` accepts a plan path and `--quick`.

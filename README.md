@@ -38,6 +38,7 @@ and limitations.
 | --- | --- | --- |
 | `code-style` | Implicit or explicit | Applies language-agnostic conventions for code size, naming, types, dependencies, tests, formatting, and logging. |
 | `devils-advocate` | Explicit only in Claude and Codex | Iteratively stress-tests and hardens a plan or design document, with a serial fallback when isolated reviewers are unavailable. |
+| `humanizer` | Implicit or explicit | Rewrites AI-sounding prose in the writer's voice without changing its facts or meaning. |
 | `review-current-work` | Implicit or explicit | Reviews all branch commits for architecture, project-pattern fit, security, performance, and missing tests. |
 
 <!-- skill-catalog:end -->
@@ -48,6 +49,7 @@ Claude Code:
 
 ```text
 /vdufloth:devils-advocate docs/my-plan.md --quick
+/vdufloth:humanizer
 /vdufloth:review-current-work
 ```
 
@@ -55,12 +57,13 @@ Codex CLI or IDE extension:
 
 ```text
 $devils-advocate docs/my-plan.md --quick
+$humanizer
 $review-current-work
 ```
 
-`code-style` and `review-current-work` may also activate automatically when a
-request matches their descriptions. `devils-advocate` is explicitly disabled
-for implicit invocation in both Claude and Codex.
+`code-style`, `humanizer`, and `review-current-work` may also activate
+automatically when a request matches their descriptions. `devils-advocate` is
+explicitly disabled for implicit invocation in both Claude and Codex.
 
 ## Always-on code style (optional)
 
@@ -116,7 +119,9 @@ block on re-run without duplication.
 │   ├── .claude-plugin/plugin.json    # Claude compatibility manifest
 │   └── skills/                       # one canonical skill tree
 └── scripts/
+    ├── assert-discovery.mjs
     ├── check-package.mjs
+    ├── check-release.mjs
     ├── install-code-style.sh
     ├── test-install-code-style.sh
     └── validate-skills-reference.py

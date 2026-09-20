@@ -79,8 +79,10 @@ npx skills@1.7.0 add . --list
 
 CI also validates the portable manifest against Agent Plugins 1.0, validates
 skills with the pinned Agent Skills reference validator, and performs Codex,
-Claude, and `skills` discovery in disposable profiles. Do not run install
-smoke tests against a developer's real Claude or Codex profile.
+Claude, and `skills` discovery in disposable profiles. It compares skill
+changes with the base revision and requires the documented version and
+changelog updates. Do not run install smoke tests against a developer's real
+Claude or Codex profile.
 
 When behavior, installation, or discovery changes, update `README.md`,
 `docs/compatibility.md`, and `CHANGELOG.md` in the same change.

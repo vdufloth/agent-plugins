@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -27,6 +29,11 @@ jobs:
 
       - name: Check package invariants
         run: node scripts/check-package.mjs --check
+
+      - name: Check skill release bookkeeping
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/check-release.mjs "$BASE_SHA"
 
       - name: Validate portable Agent Plugins manifest
         run: |
@@ -59,18 +66,7 @@ jobs:
       - name: Verify skills CLI discovery
         run: |
           npx --yes skills@1.7.0 add . --list | tee "$RUNNER_TEMP/skills-list.txt"
-          node - <<'NODE'
-          const fs = require("node:fs");
-          const text = fs.readFileSync(`${process.env.RUNNER_TEMP}/skills-list.txt`, "utf8")
-            .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "");
-          if (!/Found 3 skills/.test(text)) throw new Error("skills CLI did not find exactly three skills");
-          for (const name of ["code-style", "devils-advocate", "review-current-work"]) {
-            const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            if (!new RegExp(`(?:^|\\n)[│ ]*${escaped}\\s*(?:\\n|$)`).test(text)) {
-              throw new Error(`skills CLI did not list ${name}`);
-            }
-          }
-          NODE
+          node scripts/assert-discovery.mjs skills-list "$RUNNER_TEMP/skills-list.txt"
 
       - name: Verify Codex marketplace discovery and install
         run: |
@@ -83,21 +79,8 @@ jobs:
           HOME="$profile" npx --yes @openai/codex@0.154.0 plugin add \
             vdufloth@vdufloth-agent-plugins --json \
             > "$RUNNER_TEMP/codex-install.json"
-          node - <<'NODE'
-          const fs = require("node:fs");
-          const path = require("node:path");
-          const result = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/codex-plugins.json`, "utf8"));
-          if (result.available?.length !== 1) throw new Error("Codex did not discover exactly one plugin");
-          if (result.available[0].pluginId !== "vdufloth@vdufloth-agent-plugins") {
-            throw new Error("Codex discovered the wrong plugin");
-          }
-          const install = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/codex-install.json`, "utf8"));
-          const names = fs.readdirSync(path.join(install.installedPath, "skills"))
-            .filter((name) => fs.existsSync(path.join(install.installedPath, "skills", name, "SKILL.md")))
-            .sort();
-          const expected = ["code-style", "devils-advocate", "review-current-work"];
-          if (JSON.stringify(names) !== JSON.stringify(expected)) throw new Error(`Codex installed skills: ${names}`);
-          NODE
+          node scripts/assert-discovery.mjs codex \
+            "$RUNNER_TEMP/codex-plugins.json" "$RUNNER_TEMP/codex-install.json"
 
       - name: Verify Claude marketplace install
         run: |
@@ -109,15 +92,4 @@ jobs:
             plugin install vdufloth@vdufloth-claude-plugins --scope user --yes --json
           HOME="$profile" npx --yes @anthropic-ai/claude-code@2.1.278 \
             plugin list --json > "$RUNNER_TEMP/claude-plugins.json"
-          node - <<'NODE'
-          const fs = require("node:fs");
-          const path = require("node:path");
-          const plugins = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/claude-plugins.json`, "utf8"));
-          const plugin = plugins.find((entry) => entry.id === "vdufloth@vdufloth-claude-plugins");
-          if (!plugin) throw new Error("Claude did not install the vdufloth plugin");
-          const names = fs.readdirSync(path.join(plugin.installPath, "skills"))
-            .filter((name) => fs.existsSync(path.join(plugin.installPath, "skills", name, "SKILL.md")))
-            .sort();
-          const expected = ["code-style", "devils-advocate", "review-current-work"];
-          if (JSON.stringify(names) !== JSON.stringify(expected)) throw new Error(`Claude installed skills: ${names}`);
-          NODE
+          node scripts/assert-discovery.mjs claude "$RUNNER_TEMP/claude-plugins.json"
