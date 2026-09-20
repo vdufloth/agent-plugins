@@ -1,0 +1,6 @@
+interface:
+  display_name: "Devil's Advocate"
+  short_description: "Stress-test and harden an implementation plan"
+
+policy:
+  allow_implicit_invocation: false

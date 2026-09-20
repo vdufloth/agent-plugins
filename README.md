@@ -1,117 +1,161 @@
-# vdufloth's Claude Code plugin marketplace
+# vdufloth agent plugins
 
-Personal [Claude Code](https://code.claude.com) plugin marketplace. Skills, MCP servers, hooks, and slash commands I use across machines and want to share.
+Personal software-engineering skills packaged once for Claude Code, Codex, and
+other Agent Skills-compatible clients.
+
+Managed plugins are the easiest route: the host installs and updates the whole
+bundle. The `skills` CLI is an alternative for people who want editable skill
+copies in an agent's native skills directory.
+
+> [!IMPORTANT]
+> Choose one installation route for each host. Installing both the managed
+> plugin and editable copies exposes duplicate skills with the same names.
 
 ## Install
 
-In any Claude Code session:
+<!-- install-routes:start -->
 
-```
-/plugin marketplace add vdufloth/claude-plugins
-/plugin install vdufloth@vdufloth-claude-plugins
-```
+| Route | Install | Update | Best for |
+| --- | --- | --- | --- |
+| Claude Code plugin | `/plugin marketplace add vdufloth/claude-plugins`<br>`/plugin install vdufloth@vdufloth-claude-plugins` | `/plugin marketplace update vdufloth-claude-plugins`<br>`/plugin update vdufloth@vdufloth-claude-plugins` | Native managed Claude installation |
+| Codex plugin | `codex plugin marketplace add vdufloth/claude-plugins`<br>`codex plugin add vdufloth@vdufloth-agent-plugins` | `codex plugin marketplace upgrade vdufloth-agent-plugins`<br>`codex plugin add vdufloth@vdufloth-agent-plugins` | Native managed Codex installation |
+| Editable skills | `npx skills@latest add vdufloth/claude-plugins` | `npx skills@latest update` | Codex, Claude Code, Cursor, and other supported agents |
 
-That's it — the marketplace is public, so no authentication is needed on any machine.
+<!-- install-routes:end -->
 
-To pull updates later:
+The repository is public, and these skills do not require authentication.
+The editable route prompts for the target agent and skills unless you pass the
+corresponding `skills` CLI flags.
 
-```
-/plugin marketplace update vdufloth-claude-plugins
-/plugin update vdufloth@vdufloth-claude-plugins
-```
+See [compatibility](docs/compatibility.md) for tested versions, capabilities,
+and limitations.
 
-## What's included
+## Skills
 
-### `vdufloth` plugin
+<!-- skill-catalog:start -->
 
 | Skill | Invocation | Description |
-|-------|------------|-------------|
-| `devils-advocate` | `/vdufloth:devils-advocate [path-to-plan.md]` | Iteratively harden a design doc or implementation plan through multiple rounds of devil's advocate critique. |
-| `code-style` | `/vdufloth:code-style` (or auto-invoked when writing/editing/reviewing code) | Personal coding conventions: function/file size, naming, explicit types, dependency injection, tests, structure, formatting, logging. |
+| --- | --- | --- |
+| `code-style` | Implicit or explicit | Applies language-agnostic conventions for code size, naming, types, dependencies, tests, formatting, and logging. |
+| `devils-advocate` | Explicit only in Claude and Codex | Iteratively stress-tests and hardens a plan or design document, with a serial fallback when isolated reviewers are unavailable. |
+| `review-current-work` | Implicit or explicit | Reviews all branch commits for architecture, project-pattern fit, security, performance, and missing tests. |
 
-### Always-on enforcement (optional)
+<!-- skill-catalog:end -->
 
-Skills are auto-invoked based on description matching, which is a soft guarantee. To make `code-style` apply to **every** Claude Code session on a machine, install the rules into your user-level `~/.claude/CLAUDE.md`:
+### Invocation examples
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/vdufloth/claude-plugins/main/scripts/install-code-style.sh | bash
+Claude Code:
+
+```text
+/vdufloth:devils-advocate docs/my-plan.md --quick
+/vdufloth:review-current-work
 ```
 
-Or from a clone:
+Codex CLI or IDE extension:
+
+```text
+$devils-advocate docs/my-plan.md --quick
+$review-current-work
+```
+
+`code-style` and `review-current-work` may also activate automatically when a
+request matches their descriptions. `devils-advocate` is explicitly disabled
+for implicit invocation in both Claude and Codex.
+
+## Always-on code style (optional)
+
+Installing the skill through a plugin is normally sufficient. The bootstrap
+script is only for users who want the code-style rules loaded in every session
+instead of invoked as a skill.
+
+No arguments preserve the original Claude target:
 
 ```bash
 bash scripts/install-code-style.sh
 ```
 
-The script writes a self-contained, marker-delimited block into `~/.claude/CLAUDE.md`. Re-run it any time to refresh the rules in place — it's idempotent.
+Choose Claude or Codex explicitly:
+
+```bash
+bash scripts/install-code-style.sh --agent claude-code
+bash scripts/install-code-style.sh --agent codex
+```
+
+Use an explicit instruction file for another agent, preview the managed block,
+or remove it:
+
+```bash
+bash scripts/install-code-style.sh --target /path/to/instructions.md
+bash scripts/install-code-style.sh --print
+bash scripts/install-code-style.sh --agent codex --remove
+```
+
+For remote installation, pass script arguments after `bash -s --`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vdufloth/claude-plugins/main/scripts/install-code-style.sh | bash -s -- --agent codex
+```
+
+The script owns only its marker-delimited block. It makes a timestamped backup
+before changing an existing file, preserves other content, and replaces its
+block on re-run without duplication.
 
 ## Repository structure
 
-```
+```text
 .
-├── .claude-plugin/
-│   └── marketplace.json           # marketplace manifest
-├── plugins/
-│   └── vdufloth/                  # the plugin
-│       ├── .claude-plugin/
-│       │   └── plugin.json        # plugin manifest
-│       └── skills/
-│           ├── code-style/
-│           │   └── SKILL.md
-│           └── devils-advocate/
-│               └── SKILL.md
+├── AGENTS.md                         # canonical contributor guidance
+├── CLAUDE.md                         # thin Claude import adapter
+├── .agents/plugins/marketplace.json  # Codex marketplace
+├── .claude-plugin/marketplace.json   # Claude marketplace
+├── docs/
+│   ├── compatibility.md
+│   └── adr/
+├── plugins/vdufloth/
+│   ├── plugin.json                   # portable identity and version
+│   ├── .claude-plugin/plugin.json    # Claude compatibility manifest
+│   └── skills/                       # one canonical skill tree
 └── scripts/
-    └── install-code-style.sh      # bootstrap code-style into ~/.claude/CLAUDE.md
+    ├── check-package.mjs
+    ├── install-code-style.sh
+    ├── test-install-code-style.sh
+    └── validate-skills-reference.py
 ```
 
-## Adding a new skill
+No skill is copied into a host-specific directory inside this repository.
 
-To add a skill to the existing `vdufloth` plugin:
+## Contributing and releasing
 
-1. Create `plugins/vdufloth/skills/<skill-name>/SKILL.md` with YAML frontmatter:
-   ```yaml
-   ---
-   name: <skill-name>
-   description: One sentence describing when this skill applies
-   ---
+To add a skill, create
+`plugins/vdufloth/skills/<skill-name>/SKILL.md`, add its OpenAI metadata at
+`agents/openai.yaml`, and add one row to the skill catalog above. Keep the
+directory and frontmatter names identical.
 
-   Skill instructions here.
-   ```
-2. Bump `version` in `plugins/vdufloth/.claude-plugin/plugin.json`
-3. Commit and push
-4. On any machine: `/plugin update vdufloth@vdufloth-claude-plugins`
+The portable manifest is the version source of truth. Bump
+`plugins/vdufloth/plugin.json`, then synchronize the two Claude-derived fields:
 
-## Adding a sibling plugin
+```bash
+node scripts/check-package.mjs --sync
+```
 
-When the marketplace grows beyond one plugin's scope (e.g. a separate `dev-tools` plugin):
+Validate before release:
 
-1. Create `plugins/<new-plugin>/.claude-plugin/plugin.json`:
-   ```json
-   {
-     "name": "<new-plugin>",
-     "version": "0.1.0",
-     "description": "...",
-     "author": { "name": "Vinicius Dufloth" }
-   }
-   ```
-2. Add skills under `plugins/<new-plugin>/skills/<skill-name>/SKILL.md`
-3. Optional bundle: `.mcp.json` (MCP servers), `hooks/hooks.json` (hooks), `commands/` (slash commands), `agents/` (sub-agents) at the plugin root
-4. Append the new plugin to the `plugins` array in `.claude-plugin/marketplace.json`:
-   ```json
-   {
-     "name": "<new-plugin>",
-     "source": "./plugins/<new-plugin>",
-     "description": "..."
-   }
-   ```
-5. Commit and push. Install with `/plugin install <new-plugin>@vdufloth-claude-plugins`.
+```bash
+node scripts/check-package.mjs --check
+bash scripts/test-install-code-style.sh
+claude plugin validate . --strict
+claude plugin validate plugins/vdufloth --strict
+npx skills@1.7.0 add . --list
+```
 
-Plugins are independently installable — adding a sibling doesn't affect users who only want `vdufloth`.
+Update this README, [compatibility documentation](docs/compatibility.md), and
+[changelog](CHANGELOG.md) whenever behavior or installation changes. The full
+maintainer rules are in [AGENTS.md](AGENTS.md).
 
-## Sharing with teammates
-
-Same two install commands. No managed-settings or enterprise config required for ad-hoc sharing.
+The distribution choices and staged repository rename are documented in
+[ADR 0001](docs/adr/0001-portable-plugin-with-host-adapters.md) and
+[ADR 0002](docs/adr/0002-stage-the-repository-rename.md).
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT — see [LICENSE](LICENSE).

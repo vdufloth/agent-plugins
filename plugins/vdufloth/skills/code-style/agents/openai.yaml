@@ -1,0 +1,6 @@
+interface:
+  display_name: "Code Style"
+  short_description: "Apply consistent language-agnostic coding conventions"
+
+policy:
+  allow_implicit_invocation: true

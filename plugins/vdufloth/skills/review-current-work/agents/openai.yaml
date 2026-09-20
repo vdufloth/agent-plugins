@@ -1,0 +1,6 @@
+interface:
+  display_name: "Review Current Work"
+  short_description: "Review branch commits as a senior technical lead"
+
+policy:
+  allow_implicit_invocation: true

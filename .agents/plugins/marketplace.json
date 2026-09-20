@@ -1,0 +1,20 @@
+{
+  "name": "vdufloth-agent-plugins",
+  "interface": {
+    "displayName": "vdufloth Agent Plugins"
+  },
+  "plugins": [
+    {
+      "name": "vdufloth",
+      "source": {
+        "source": "local",
+        "path": "./plugins/vdufloth"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

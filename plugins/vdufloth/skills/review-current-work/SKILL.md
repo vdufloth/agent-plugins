@@ -9,7 +9,7 @@ Act as a senior tech lead reviewing every new commit on the current branch (comm
 
 - Inspect every commit between the base branch and `HEAD`. Do not skip commits even if later ones overwrite earlier changes — patterns of churn are signal too.
 - Detect the base branch from the repo: prefer `main`, fall back to `master`, then to the upstream tracking branch (`git rev-parse --abbrev-ref @{u}` minus the remote prefix). If still ambiguous, ask once.
-- Read the project's `CLAUDE.md`, `AGENTS.md`, `README.md`, and any `CONTRIBUTING.md` before reviewing so "project's code pattern" is grounded, not guessed.
+- Read the project's `AGENTS.md`, `CLAUDE.md`, `README.md`, and any `CONTRIBUTING.md` before reviewing so "project's code pattern" is grounded, not guessed. A missing file is not an error; use whichever repository guidance the host and project provide.
 
 ## Gather context
 

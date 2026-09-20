@@ -1,20 +1,20 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "vdufloth-claude-plugins",
-  "description": "Vinicius Dufloth's personal Claude Code plugin marketplace",
+  "description": "Vinicius Dufloth's personal agent plugin marketplace",
   "owner": {
     "name": "vdufloth",
     "url": "https://github.com/vdufloth"
   },
   "metadata": {
-    "version": "0.3.0",
+    "version": "0.4.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
     {
       "name": "vdufloth",
       "source": "./plugins/vdufloth",
-      "description": "Personal Claude Code skills",
+      "description": "Personal agent skills for software engineering workflows",
       "category": "personal",
       "keywords": ["personal", "skills"]
     }

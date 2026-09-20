@@ -1,7 +1,7 @@
 ---
 name: devils-advocate
 description: Iteratively harden a design doc or implementation plan through multiple rounds of devil's advocate critique. Use when the user wants to stress-test a plan, RFC, or design doc before implementation, points to a .md plan file, or asks to "harden", "challenge", or "find holes" in a plan.
-argument-hint: [path-to-plan.md] [--quick]
+argument-hint: "[path-to-plan.md] [--quick]"
 disable-model-invocation: true
 ---
 
@@ -9,7 +9,11 @@ Iteratively review and harden a design doc or implementation plan through multip
 
 ## Input
 
-`$ARGUMENTS` may be a file path to the design doc or plan to review, optionally followed by `--quick` (or `-q`) for a single-pass review.
+Interpret any path and flags supplied with the explicit invocation as the input.
+The input may be a file path to the design doc or plan to review, optionally
+followed by `--quick` (or `-q`) for a single-pass review. Hosts expose explicit
+invocation arguments differently, so do not assume a particular placeholder or
+environment variable exists.
 
 If no path is provided, auto-discover the plan by searching the current working directory for the most recently modified file matching these patterns (in order):
 1. `plan-*.md`
@@ -19,7 +23,9 @@ If no path is provided, auto-discover the plan by searching the current working 
 5. `*implementation*.md`
 6. Any `.md` file modified in the last hour (excluding `CLAUDE.md`, `README.md`, `MEMORY.md`, `AGENTS.md`)
 
-Use `ls -lt *.md plan-*.md *-plan.md *-design*.md *-fix*.md 2>/dev/null | head -20` to find candidates, then pick the most recently modified match.
+Use the host's available filesystem search capability to find candidates, then
+pick the most recently modified match. Exclude `CLAUDE.md`, `README.md`,
+`MEMORY.md`, and `AGENTS.md` from the final fallback.
 
 If you find a candidate, tell the user which file you're reviewing before starting.
 
@@ -39,7 +45,18 @@ The goal is a plan that is:
 
 ### Step 1: Run the Devil's Advocate Review
 
-**Spawn a fresh background agent each round.** The agent must NOT see what previous rounds found — pass it only the current state of the plan and the source files it should read. This independence prevents confirmation bias and lets each round form its own assessment of the plan as it stands now.
+Choose the strongest isolation available for every round:
+
+- If the host supports isolated subagent or background-agent execution, use a
+  fresh isolated reviewer. Pass it only the current plan and the source files
+  it should read; do not expose previous-round findings.
+- If isolated execution is unavailable, perform a clearly separated serial
+  review pass. Do not consult the previous review log until the new findings
+  have been independently classified. Tell the user that the review used
+  reduced isolation.
+
+This independence reduces confirmation bias and lets each round assess the
+current plan on its own merits.
 
 **Tone calibration for the agent.** Critique must be specific and actionable. "This might fail" is useless; "Step 3 assumes Kafka can sustain 10x current throughput with no benchmark cited" is useful. The agent should not attack the author, hedge with disclaimers ("just my opinion, but…"), strawman the plan, or list cosmetic issues (typos, formatting) when substance is what matters. If the agent cannot point to a specific section or line of the plan, it should not raise the critique.
 
@@ -83,7 +100,7 @@ The agent MUST:
 
 ### Step 2: Classify Findings
 
-When the review agent returns, read every finding and classify each into one of three categories:
+When the review pass returns, read every finding and classify each into one of three categories:
 
 | Category | Criteria | Action |
 |----------|----------|--------|
@@ -125,7 +142,10 @@ After applying all changes, evaluate:
 - **Loop again** if: You made substantive changes (not just typo fixes) that could have introduced new inconsistencies, or if the previous review had critical/important findings that required significant plan restructuring.
 - **Stop** if: The review verdict was "approve as-is", or all findings were minor, or you've already completed 4 rounds (diminishing returns).
 
-If looping, go back to Step 1. Tell the user which round you're starting (e.g., "Starting round 2 review..."). Remember: the new agent must be fresh — do not pass it the previous round's findings.
+If looping, go back to Step 1. Tell the user which round you're starting (for
+example, "Starting round 2 review..."). Use a fresh isolated reviewer when the
+host provides one; otherwise preserve the serial-review separation described
+in Step 1.
 
 ### Step 6: Finalize the Plan
 
@@ -174,4 +194,7 @@ When the loop ends, do a final pass on the plan to ensure it is **maximally cons
 - **Be transparent.** Tell the user what round you're on, what you changed, and why. Don't silently rewrite large sections.
 - **Preserve detail.** When hardening, add specificity — don't remove implementation details that an engineer would need. The plan should get MORE detailed over rounds, not less.
 - **Don't start implementing.** This command hardens the plan only. No code changes outside the plan document.
-- **Each review agent must be independent.** Don't tell the review agent what previous rounds found — let it form its own assessment of the current plan state. This prevents confirmation bias and is the single most important rule for keeping the loop honest.
+- **Keep review passes independent.** Do not consult or disclose previous-round
+  findings until the current pass reaches classification. Prefer a fresh
+  isolated reviewer when supported; otherwise disclose the reduced-isolation
+  serial fallback.

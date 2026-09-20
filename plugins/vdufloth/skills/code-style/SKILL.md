@@ -54,4 +54,4 @@ Apply these conventions when producing or modifying code in this project. They a
 
 - Detect the project's language, framework, and tooling first (read `package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, etc.) so you can map "default formatter" and "test command" to concrete commands.
 - If existing code in the project violates a rule, fix it within the scope of the change you're making — do not perform unrelated cleanups.
-- If a rule directly conflicts with a project-specific convention documented in `CLAUDE.md`, `AGENTS.md`, or `README.md`, the project doc wins. Flag the conflict to the user.
+- If a rule directly conflicts with a project-specific convention documented in `AGENTS.md`, `CLAUDE.md`, `README.md`, or `CONTRIBUTING.md`, the project document wins. Flag the conflict to the user.

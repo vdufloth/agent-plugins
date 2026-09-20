@@ -1,0 +1,123 @@
+name: Validate packages
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.8.0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install pinned schema and skill validators
+        run: python -m pip install jsonschema==4.25.1 skills-ref==0.1.1
+
+      - name: Check package invariants
+        run: node scripts/check-package.mjs --check
+
+      - name: Validate portable Agent Plugins manifest
+        run: |
+          curl --fail --silent --show-error \
+            https://agent-plugins.org/schemas/1.0.0/plugin.schema.json \
+            --output "$RUNNER_TEMP/agent-plugin-1.0.0.schema.json"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+
+          root = Path.cwd()
+          schema = json.loads(Path(os.environ["RUNNER_TEMP"], "agent-plugin-1.0.0.schema.json").read_text())
+          manifest = json.loads((root / "plugins/vdufloth/plugin.json").read_text())
+          Draft202012Validator(schema).validate(manifest)
+          PY
+
+      - name: Validate Agent Skills
+        run: python scripts/validate-skills-reference.py
+
+      - name: Validate Claude package adapters
+        run: |
+          npx --yes @anthropic-ai/claude-code@2.1.278 plugin validate . --strict
+          npx --yes @anthropic-ai/claude-code@2.1.278 plugin validate plugins/vdufloth --strict
+
+      - name: Test always-on installer
+        run: bash scripts/test-install-code-style.sh
+
+      - name: Verify skills CLI discovery
+        run: |
+          npx --yes skills@1.7.0 add . --list | tee "$RUNNER_TEMP/skills-list.txt"
+          node - <<'NODE'
+          const fs = require("node:fs");
+          const text = fs.readFileSync(`${process.env.RUNNER_TEMP}/skills-list.txt`, "utf8")
+            .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "");
+          if (!/Found 3 skills/.test(text)) throw new Error("skills CLI did not find exactly three skills");
+          for (const name of ["code-style", "devils-advocate", "review-current-work"]) {
+            const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            if (!new RegExp(`(?:^|\\n)[│ ]*${escaped}\\s*(?:\\n|$)`).test(text)) {
+              throw new Error(`skills CLI did not list ${name}`);
+            }
+          }
+          NODE
+
+      - name: Verify Codex marketplace discovery and install
+        run: |
+          profile="$RUNNER_TEMP/codex-profile"
+          mkdir -p "$profile"
+          HOME="$profile" npx --yes @openai/codex@0.154.0 plugin marketplace add "$GITHUB_WORKSPACE" --json
+          HOME="$profile" npx --yes @openai/codex@0.154.0 plugin list \
+            --marketplace vdufloth-agent-plugins --available --json \
+            > "$RUNNER_TEMP/codex-plugins.json"
+          HOME="$profile" npx --yes @openai/codex@0.154.0 plugin add \
+            vdufloth@vdufloth-agent-plugins --json \
+            > "$RUNNER_TEMP/codex-install.json"
+          node - <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+          const result = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/codex-plugins.json`, "utf8"));
+          if (result.available?.length !== 1) throw new Error("Codex did not discover exactly one plugin");
+          if (result.available[0].pluginId !== "vdufloth@vdufloth-agent-plugins") {
+            throw new Error("Codex discovered the wrong plugin");
+          }
+          const install = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/codex-install.json`, "utf8"));
+          const names = fs.readdirSync(path.join(install.installedPath, "skills"))
+            .filter((name) => fs.existsSync(path.join(install.installedPath, "skills", name, "SKILL.md")))
+            .sort();
+          const expected = ["code-style", "devils-advocate", "review-current-work"];
+          if (JSON.stringify(names) !== JSON.stringify(expected)) throw new Error(`Codex installed skills: ${names}`);
+          NODE
+
+      - name: Verify Claude marketplace install
+        run: |
+          profile="$RUNNER_TEMP/claude-profile"
+          mkdir -p "$profile"
+          HOME="$profile" npx --yes @anthropic-ai/claude-code@2.1.278 \
+            plugin marketplace add "$GITHUB_WORKSPACE"
+          HOME="$profile" npx --yes @anthropic-ai/claude-code@2.1.278 \
+            plugin install vdufloth@vdufloth-claude-plugins --scope user --yes --json
+          HOME="$profile" npx --yes @anthropic-ai/claude-code@2.1.278 \
+            plugin list --json > "$RUNNER_TEMP/claude-plugins.json"
+          node - <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+          const plugins = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/claude-plugins.json`, "utf8"));
+          const plugin = plugins.find((entry) => entry.id === "vdufloth@vdufloth-claude-plugins");
+          if (!plugin) throw new Error("Claude did not install the vdufloth plugin");
+          const names = fs.readdirSync(path.join(plugin.installPath, "skills"))
+            .filter((name) => fs.existsSync(path.join(plugin.installPath, "skills", name, "SKILL.md")))
+            .sort();
+          const expected = ["code-style", "devils-advocate", "review-current-work"];
+          if (JSON.stringify(names) !== JSON.stringify(expected)) throw new Error(`Claude installed skills: ${names}`);
+          NODE
